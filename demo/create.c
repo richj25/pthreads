@@ -2,27 +2,53 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <signal.h>
+#include <errno.h>
 
-int work_routine(void *num);
+struct thread_data {
+   int counter;
+};
 
-int work_routine(void *num)
+void* work_routine(void *data);
+
+void* work_routine(void *data)
 {
-    printf("Executing thread \n");
-    pthread_join(pthread_self(),NULL);
-    sleep(5);
+   struct thread_data  *user_data = (struct thread_data *)data;
+   user_data->counter++;
+   
 }
 
 int main(int argc,char **argv)
 {
     pthread_t tid;
     pthread_attr_t attr;
+    sigset_t set;
     int retval;
+    struct thread_data *data;
+
+    data = (struct thread_data *)malloc(sizeof(struct thread_data));
+    data->counter = 0;
 
     pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED);
 
-    retval = pthread_create(&tid,&attr,work_routine,NULL);
-    if (retval != 0) printf("Thread creation failed\n");
-    else printf("Thread creation succeeded %d\n",tid);
+printf("About to create thread\n");
+int i = 0;
+    retval = pthread_create(&tid,&attr,&work_routine,(void *)data);
+    if (retval == 0) { 
+        printf("Thread creation succeeded %d\n",i);
+    }
+    else {
+        printf("Thread creation failed\n"); 
+        if (errno = EAGAIN) printf("No resources\n");
+    }
 
-    sleep(10);
+    printf("counter = %d\n",data->counter);
+
+    sleep(1);
+    printf("counter = %d\n",data->counter);
+    if (data->counter == 1) printf("Data passing works %d\n",data->counter);
+    else printf("Data passing doesn't work\n");
+
+    return(0);
 }

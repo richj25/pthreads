@@ -2,7 +2,6 @@
 #include "pthread_lib.h"
 #include <sys/types.h>
 #include <stdlib.h>
-#include <sys/mman.h>
 
 enum thread_state {RUNNING, UNJOINED, EXITED};
 
@@ -18,13 +17,16 @@ typedef struct db_entry {
 
 db_entry_t *thread_db;
 
-void init_thread_db();
+bool init_thread_db();
 void destroy_thread_db();
-volatile pid_t* get_volatile_tid_location_from_index(int i);
 pthread_t initialize_thread_db_entry(int detachstate, size_t stacksize, void * stackaddr);
-volatile pid_t* get_volatile_tid_location_from_pthread_id(pthread_t ptid);
-void set_nonvolatile_tid_for_entry(int index,pid_t tid);
-void recycle_thread_db_entry_by_index(int index);
-void recycle_thread_db_entry_by_pthread_id(pthread_t ptid);
-void wait_for_volatile_tid_to_clear(pthread_t ptid);
+volatile pid_t* get_tid_location_from_db_entry(pthread_t ptid);
+void recycle_thread_db_entry(pthread_t ptid);
+void wait_for_thread_exit(pthread_t ptid);
+void set_nonvolatile_tid(pthread_t ptid, pid_t tid);
 pthread_t get_pthread_id_from_tid(pid_t tid);
+
+
+
+int return_stack_size(pthread_t ptid);
+void *return_stack_addr(pthread_t ptid);

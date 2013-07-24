@@ -49,7 +49,7 @@ pthread_t pthread_self(void)
 }
 
 int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
-                          int (*start_routine) (void *), void *arg)
+                          void * (*start_routine) (void *), void *arg)
 {
     return create(thread,attr,start_routine,arg);
 }

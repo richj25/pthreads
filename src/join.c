@@ -4,8 +4,8 @@
 
 int join(pthread_t ptid, void **value_ptr)
 {
-    wait_for_volatile_tid_to_clear(ptid);
+    wait_for_thread_exit(ptid);
 
-    recycle_thread_db_entry_by_pthread_id(ptid); 
+    recycle_thread_db_entry(ptid); 
     return 0;
 }

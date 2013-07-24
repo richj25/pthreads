@@ -1,7 +1,7 @@
 CC=/usr/bin/gcc
 LD=/usr/bin/gcc
 
-INCLUDES=-I/home/richj/pthreads/src
+INCLUDES=-I$(CURDIR)
 WARNINGS=-Wall
 DEBUG=-g
 CFLAGS=-c -fPIC -std=gnu99 -D__USE_MISC

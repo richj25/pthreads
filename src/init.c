@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "pthread_lib.h"
 #include "thread_db.h"
 #include "sig.h"
@@ -7,8 +8,8 @@ static void dest() __attribute__((destructor));
 
 static void con()
 {
-    init_thread_db();
-    set_signal_handlers();
+    if (init_thread_db() == false) printf("Could not initialize thread_db\n");
+    if (install_mysigchild_signal_handler() == false) printf("Could not install signal handler\n");
 }
 
 static void dest()

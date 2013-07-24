@@ -1,12 +1,16 @@
 #include "thread_db.h"
+#include "mem.h"
 
 
-void init_thread_db()
+bool init_thread_db()
 {
     thread_db = (db_entry_t *) calloc(PTHREAD_THREAD_MAX,sizeof(db_entry_t));
+
+    if (thread_db == NULL) return false;
+
     thread_db[0].inuse = true;
-    thread_db[0].state = RUNNING;
-    thread_db[0].nonvolatile_tid = getpid();
+
+    return true;
 }
 
 void destroy_thread_db()
@@ -16,57 +20,66 @@ void destroy_thread_db()
 
 pthread_t initialize_thread_db_entry(int detachstate, size_t stacksize, void * stackaddr)
 {
-    int i;
+    int index;
 
-    for (i=0;i<PTHREAD_THREAD_MAX;i++)
-        if (thread_db[i].inuse == false)
+    for (index=0;index<PTHREAD_THREAD_MAX;index++)
+        if (thread_db[index].inuse == false)
         {
-            thread_db[i].inuse = true;
-            thread_db[i].detachstate = detachstate;
-            thread_db[i].stacksize = stacksize;
-            thread_db[i].stackaddr = stackaddr;
-            thread_db[i].state = RUNNING;
-            return i;
+            thread_db[index].inuse = true;
+            thread_db[index].detachstate = detachstate;
+            thread_db[index].stacksize = stacksize;
+            thread_db[index].stackaddr = stackaddr;
+            thread_db[index].state = RUNNING;
+            return index;
         }
     return -1;
 }
 
-volatile pid_t* get_volatile_tid_location_from_db_entry(int i)
+volatile pid_t* get_tid_location_from_db_entry(pthread_t ptid)
 {
-    return &(thread_db[i].volatile_tid);
+    int index = (int) ptid;
+
+    return &(thread_db[index].volatile_tid);
 }
 
-volatile pid_t* get_volatile_tidloc_from_pthread_id(pthread_t ptid)
+void recycle_thread_db_entry(pthread_t ptid)
 {
-    return &(thread_db[(int) ptid].volatile_tid);
+    int index = (int)ptid;
+
+    thread_db[index].inuse = false;
+    memunmap(thread_db[index].stackaddr,thread_db[index].stacksize);
+}
+
+void wait_for_thread_exit(pthread_t ptid)
+{
+    
+}
+
+void set_nonvolatile_tid(pthread_t ptid, pid_t tid)
+{
+    int index = (int)ptid;
+
+    thread_db[index].nonvolatile_tid = tid;
 }
 
 pthread_t get_pthread_id_from_tid(pid_t tid)
 {
-    int i;
+    int index;
 
-    for (i=0;i<PTHREAD_THREAD_MAX;i++)
-        if (thread_db[i].nonvolatile_tid == tid) return (pthread_t)i;
-    return -1;
+    for (index=0;index<PTHREAD_THREAD_MAX;index++)
+        if (thread_db[index].nonvolatile_tid == tid) return (pthread_t)index;
+
+    return (pthread_t) -1;
 }
 
-void set_nonvolatile_tid_for_entry(int index,pid_t tid)
+int return_stack_size(pthread_t ptid)
 {
-    thread_db[index].nonvolatile_tid = tid;
+    int index = (pthread_t)ptid;
+    return thread_db[index].stacksize;
 }
 
-void recycle_thread_db_entry_by_index(int index)
+void *return_stack_addr(pthread_t ptid)
 {
-    thread_db[index].inuse = false;
-    munmap(thread_db[index].stackaddr,thread_db[index].stacksize);
-}
-
-void recycle_thread_db_entry_by_pthread_id(pthread_t ptid)
-{
-    thread_db[(int)ptid].inuse = false;
-    munmap(thread_db[(int)ptid].stackaddr,thread_db[(int)ptid].stacksize);
-}
-
-void wait_for_volatile_tid_to_clear(pthread_t ptid)
-{
+    int index = (pthread_t)ptid;
+    return thread_db[index].stackaddr;
 }

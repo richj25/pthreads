@@ -18,7 +18,7 @@ int pthread_join(pthread_t thread, void **value_ptr);
 pthread_t pthread_self(void);
 int pthread_equal(pthread_t t1, pthread_t t2);
 
-int pthread_create(pthread_t *thread, const pthread_attr_t *attr, int  (*start_routine) (void *), void *arg);
+int pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *  (*start_routine) (void *), void *arg);
 
-#endif
+#endif /*_PTHREAD_H */
 
