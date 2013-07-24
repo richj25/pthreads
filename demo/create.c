@@ -32,23 +32,20 @@ int main(int argc,char **argv)
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED);
 
-printf("About to create thread\n");
-int i = 0;
     retval = pthread_create(&tid,&attr,&work_routine,(void *)data);
     if (retval == 0) { 
-        printf("Thread creation succeeded %d\n",i);
+        printf("Thread creation succeeded\n");
     }
     else {
         printf("Thread creation failed\n"); 
-        if (errno = EAGAIN) printf("No resources\n");
+        if (errno = EAGAIN) 
+          printf("No resources\n");
     }
 
-    printf("counter = %d\n",data->counter);
-
-    sleep(1);
-    printf("counter = %d\n",data->counter);
-    if (data->counter == 1) printf("Data passing works %d\n",data->counter);
-    else printf("Data passing doesn't work\n");
+    if (data->counter == 1) 
+      printf("Data passing works %d\n",data->counter);
+    else 
+      printf("Data passing doesn't work\n");
 
     return(0);
 }
