@@ -6,12 +6,21 @@
 #include <signal.h>
 #include "mem.h"
 #include <stdio.h>
+#include <sig.h>
 
 int thread_wrapper(void *arg)
 {
+    sigset_t blockMask, prevMask;
+
     thread_func_t *user_thread = (thread_func_t *)arg;
 
     user_thread->thread_func(user_thread->thread_data);
+
+    sigemptyset(&blockMask);
+    sigaddset(&blockMask, MYSIGCHILD);
+    sigprocmask(SIG_BLOCK, &blockMask, &prevMask);
+    
+    raise(MYSIGCHILD);
 
     return 0;
 }
@@ -35,9 +44,12 @@ int create(pthread_t *ptid, const pthread_attr_t *attr, void * (*start_routine) 
                   MAP_PRIVATE | MAP_ANONYMOUS | MAP_GROWSDOWN, \
                   -1, 0);
 
-    if (stack == MAP_FAILED) return ENOMEM;
+    if (stack == MAP_FAILED) {
+        free(user_thread);
+        return ENOMEM;
+    }
 
-    *ptid = initialize_thread_db_entry(attr->detachstate,attr->stacksize,stack);
+    *ptid = initialize_thread_db_entry(attr->detachstate,attr->stacksize,stack,user_thread);
 
     if (*ptid == -1) {
         memunmap(stack,attr->stacksize);
@@ -59,8 +71,6 @@ int create(pthread_t *ptid, const pthread_attr_t *attr, void * (*start_routine) 
     }
 
     set_nonvolatile_tid(*ptid,tid);
-
-    free(user_thread);
 
     return 0;
 }

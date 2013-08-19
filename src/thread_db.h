@@ -13,13 +13,14 @@ typedef struct db_entry {
     size_t                      stacksize;
     void *                      stackaddr;
     enum thread_state           state;
+    thread_func_t              *user_thread;
 } db_entry_t;
 
 db_entry_t *thread_db;
 
 bool init_thread_db();
 void destroy_thread_db();
-pthread_t initialize_thread_db_entry(int detachstate, size_t stacksize, void * stackaddr);
+pthread_t initialize_thread_db_entry(int detachstate, size_t stacksize, void * stackaddr, thread_func_t * user_thread);
 volatile pid_t* get_tid_location_from_db_entry(pthread_t ptid);
 void recycle_thread_db_entry(pthread_t ptid);
 void wait_for_thread_exit(pthread_t ptid);

@@ -18,7 +18,7 @@ void destroy_thread_db()
     free(thread_db);
 }
 
-pthread_t initialize_thread_db_entry(int detachstate, size_t stacksize, void * stackaddr)
+pthread_t initialize_thread_db_entry(int detachstate, size_t stacksize, void * stackaddr, thread_func_t * user_thread)
 {
     int index;
 
@@ -30,6 +30,7 @@ pthread_t initialize_thread_db_entry(int detachstate, size_t stacksize, void * s
             thread_db[index].stacksize = stacksize;
             thread_db[index].stackaddr = stackaddr;
             thread_db[index].state = RUNNING;
+            thread_db[index].user_thread = user_thread;
             return index;
         }
     return -1;
@@ -48,6 +49,7 @@ void recycle_thread_db_entry(pthread_t ptid)
 
     thread_db[index].inuse = false;
     memunmap(thread_db[index].stackaddr,thread_db[index].stacksize);
+    free(thread_db[index].user_thread);
 }
 
 void wait_for_thread_exit(pthread_t ptid)
